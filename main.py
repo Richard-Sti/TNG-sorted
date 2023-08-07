@@ -18,7 +18,7 @@ This is motivated by the fact that the default way of accessing haloes'
 particles is very slow.
 
 Stores particle coordinates and velocities in a dataset called "particles" and
-the offsets of each halo in the dataset in a dataset called "offsets".
+the offsets of each halo in the dataset called "offsets".
 """
 from argparse import ArgumentParser
 from os.path import join
