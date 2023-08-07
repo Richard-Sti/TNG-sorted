@@ -80,7 +80,7 @@ if __name__ == "__main__":
     nparts = numpy.sum(lengths[mask])
     size = nparts * 6 * 4 / 1024**3
     size = float("%.4g" % size)
-    est_time = ntot * 500 / 1000 / 60**2
+    est_time = ntot * 250 / 1000 / 60**2
     est_time = float("%.4g" % est_time)
 
     print(f"Number of halos to be processed:   {ntot}.")
