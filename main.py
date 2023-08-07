@@ -30,8 +30,11 @@ from tqdm import trange
 
 
 def load_halo(hid, basepath):
-    data = il.snapshot.loadHalo(basepath, 99, hid, 1,
-                                fields=['Coordinates', 'Velocities'])
+    try:
+        data = il.snapshot.loadHalo(basepath, 99, hid, 1,
+                                    fields=['Coordinates', 'Velocities'])
+    except OSError:
+        return None
 
     out = numpy.zeros((data['count'], 6), dtype=numpy.float32)
     out[:, :3] = data['Coordinates']
@@ -77,13 +80,13 @@ if __name__ == "__main__":
     nparts = numpy.sum(lengths[mask])
     size = nparts * 6 * 4 / 1024**3
     size = float("%.4g" % size)
-    est_time = ntot * 150 / 1000 / 60**2
+    est_time = ntot * 500 / 1000 / 60**2
     est_time = float("%.4g" % est_time)
 
     print(f"Number of halos to be processed:   {ntot}.")
     print(f"Total number of particles:         {nparts}.")
     print(f"Estimated size of the output file: {size} GB.")
-    print(f"Estimated time to process:         {est_time} hours.")
+    print(f"*Estimated* time to process:       {est_time} hours.")
 
     fout = join(args.fout_folder, "sorted_halos.hdf5")
     f = h5py.File(fout, 'w')
@@ -93,6 +96,16 @@ if __name__ == "__main__":
                             dtype=numpy.int64)
     f.close()
 
+    skipped_halos = []
+
     for hid in trange(ntot, mininterval=5):
         halo = load_halo(hid, args.basepath)
+        if halo is None:
+            skipped_halos.append(hid)
+            print(f"Unable to load halo {hid}.")
+            continue
+
         append_to_h5py(fout, hid, halo)
+
+    with h5py.File(fout, 'a') as f:
+        f.create_dataset("skipped_halos", data=skipped_halos)
