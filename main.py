@@ -103,7 +103,6 @@ if __name__ == "__main__":
         halo = load_halo(hid, args.basepath)
         if halo is None:
             skipped_halos.append(hid)
-            print(f"Unable to load halo {hid}.")
             continue
 
         append_to_h5py(fout, hid, halo)
