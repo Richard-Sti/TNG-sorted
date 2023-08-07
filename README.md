@@ -1,6 +1,6 @@
 # TNG-sorted
 
-This repository contains a script to efficiently load haloes from a TNG simulation and store them in an HDF5 file.
+This repository contains a script to efficiently load haloes from a TNG simulation and store them in an HDF5 file. This script is memory intense and provides an estimate of the required memory before running.
 
 ## Motivation
 
