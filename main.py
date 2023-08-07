@@ -61,7 +61,7 @@ def append_to_h5py(filename, hid, data):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
-        "--minpart", type=int,
+        "--minpart", type=int, required=True,
         help="Minimum number of particles in a halo to be processed.")
     parser.add_argument(
         "--basepath", type=str,
@@ -109,3 +109,5 @@ if __name__ == "__main__":
 
     with h5py.File(fout, 'a') as f:
         f.create_dataset("skipped_halos", data=skipped_halos)
+
+    print(f"Skipped {len(skipped_halos)} halos.")
