@@ -87,6 +87,7 @@ if __name__ == "__main__":
     print(f"Total number of particles:         {nparts}.")
     print(f"Estimated size of the output file: {size} GB.")
     print(f"*Estimated* time to process:       {est_time} hours.")
+    print()
 
     fout = join(args.fout_folder, "sorted_halos.hdf5")
     f = h5py.File(fout, 'w')
