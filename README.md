@@ -4,7 +4,7 @@ This repository contains a script to efficiently load haloes from a TNG simulati
 
 ## Motivation
 
-The primary motivation for this script is that the default method of accessing haloes' particles can be quite slow. This utility provides a more optimized approach by storing particle coordinates and velocities in an HDF5 dataset named `particles`, and the offsets of each halo in the dataset named `offsets`.
+The primary motivation for this script is that the default method of accessing haloes' particles can be quite slow. This utility provides a more optimized approach by storing particle coordinates and velocities in an HDF5 dataset named `particles`, and the offsets of each halo in the dataset named `halomap`.
 
 ## Dependencies
 

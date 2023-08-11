@@ -18,7 +18,16 @@ This is motivated by the fact that the default way of accessing haloes'
 particles is very slow.
 
 Stores particle coordinates and velocities in a dataset called "particles" and
-the offsets of each halo in the dataset called "offsets".
+the offsets of each halo in the dataset called "halomap".
+
+
+The data can then be accessed as follows:
+particles = f["particles"]
+halomap = f["halomap"]
+
+Choose som halo...
+start, end = halomap[21, :]
+halo = particles[start:end, :]
 """
 from argparse import ArgumentParser
 from os.path import join
@@ -53,9 +62,9 @@ def append_to_h5py(filename, hid, data):
         parts.resize((nparts_before + nparts_new, parts.shape[1]))
         parts[-nparts_new:, :] = data
 
-        offsets = f["offsets"]
+        offsets = f["halomap"]
         offsets.resize((offsets.shape[0] + 1, 3))
-        offsets[-1, :] = [hid, nparts_before, nparts_before + nparts_new]
+        offsets[-1, :] = [hid, nparts_before, nparts_before + nparts_new - 1]
 
 
 if __name__ == "__main__":
@@ -93,7 +102,7 @@ if __name__ == "__main__":
     f = h5py.File(fout, 'w')
     dset = f.create_dataset("particles", shape=(0, 6), maxshape=(None, 6),
                             dtype=numpy.float32)
-    dset = f.create_dataset("offsets", shape=(0, 3), maxshape=(None, 3),
+    dset = f.create_dataset("halomap", shape=(0, 3), maxshape=(None, 3),
                             dtype=numpy.int64)
     f.close()
 
