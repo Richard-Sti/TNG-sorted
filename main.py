@@ -39,15 +39,16 @@ from tqdm import trange
 
 
 def load_halo(hid, basepath):
+    fields = ['Coordinates', 'Velocities', 'Potential', 'SubfindVelDisp']
     try:
-        data = il.snapshot.loadHalo(basepath, 99, hid, 1,
-                                    fields=['Coordinates', 'Velocities'])
+        data = il.snapshot.loadHalo(basepath, 99, hid, 1, fields=fields)
     except OSError:
         return None
 
-    out = numpy.zeros((data['count'], 6), dtype=numpy.float32)
+    out = numpy.zeros((data['count'], 7), dtype=numpy.float32)
     out[:, :3] = data['Coordinates']
-    out[:, 3:] = data['Velocities']
+    out[:, 3:6] = data['Velocities']
+    out[:, 6] = data['Potential']
 
     return out
 
