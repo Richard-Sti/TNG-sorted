@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     fout = join(args.fout_folder, "sorted_halos.hdf5")
     f = h5py.File(fout, 'w')
-    dset = f.create_dataset("particles", shape=(0, 6), maxshape=(None, 6),
+    dset = f.create_dataset("particles", shape=(0, 7), maxshape=(None, 7),
                             dtype=numpy.float32)
     dset = f.create_dataset("halomap", shape=(0, 3), maxshape=(None, 3),
                             dtype=numpy.int64)
