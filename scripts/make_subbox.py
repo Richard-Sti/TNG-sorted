@@ -72,14 +72,13 @@ if __name__ == "__main__":
         if rank == 0:
             print(f"{datetime.now()}: processing center {i+1}/{len(centers)}.")
 
-        comm.Barrier()
         out = tngsorted.find_boxed(args.basepath, args.snap, args.pkind,
                                    args.fields, center, args.subboxsize,
-                                   args.boxsize, comm, verbose=False)
-        comm.Barrier()
+                                   args.boxsize, comm, verbose=True)
 
         # Write at rank 0. Create a new group for each center.
         if rank == 0:
+            print(f"{datetime.now()}: writing center {i+1}/{len(centers)}.")
             with File(fname_out, "r+") as f:
                 grp = f.create_group(f"center_{i}")
                 grp.create_dataset("center", data=center)
@@ -87,4 +86,4 @@ if __name__ == "__main__":
                 for key, val in out.items():
                     grp.create_dataset(key, data=val)
 
-                f.close()
+        comm.Barrier()
