@@ -4,3 +4,4 @@ venv_tngsorted/
 python3.sh
 *.out
 tngsorted/__pycache__/
+python.sh
