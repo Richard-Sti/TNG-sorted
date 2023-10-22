@@ -6,3 +6,5 @@ python3.sh
 tngsorted/__pycache__/
 python.sh
 scripts/test.ipynb
+scripts/*.txt
+scripts/*.py
