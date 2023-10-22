@@ -1,0 +1,6 @@
+venv_tngsorted/
+.bashrc
+.vscode/settings.json
+python3.sh
+*.out
+tngsorted/__pycache__/
