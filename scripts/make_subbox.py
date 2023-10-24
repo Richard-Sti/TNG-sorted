@@ -17,58 +17,81 @@ Script to select particles within a sub-box of a simulation snapshot.
 """
 from argparse import ArgumentParser
 from datetime import datetime
-from os.path import basename
+from os.path import join
 
 import numpy
 import tngsorted
 from h5py import File
+from mpi4py import MPI
 
 
-def load_centers(args):
+def load_centers(centers_file, boxsize):
     """Load box centers from a file."""
-    centers = numpy.genfromtxt(args.centers_file, delimiter=", ")
+    data = numpy.genfromtxt(centers_file, delimiter=", ", skip_header=1)
 
-    if not (numpy.all(centers > 0) and numpy.all(centers < args.boxsize)):
+    # Shuffle so that the zeroth rank does not have the most massive haloes.
+    gen = numpy.random.default_rng(seed=42)
+    gen.shuffle(data)
+
+    ids = data[:, 0].astype(int)
+    centers = data[:, 1:4]
+
+    if not (numpy.all(centers > 0) and numpy.all(centers < boxsize)):
         raise ValueError("All centers must be within the box.")
 
-    return centers.reshape(-1, 3)
+    return ids, centers.reshape(-1, 3)
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Select particles in a sub-box.")
+    parser = ArgumentParser(description="Make density fields around haloes.")
     parser.add_argument("centers_file", type=str,
                         help="File with box centers. Delimiter expected to be ', ', no header and rows of the form 'x, y, z'.")  # noqa
-    parser.add_argument("--subboxsize", type=float, default=4000.,
-                        help="Sub-box size (in appropriate units matching the particle positions).")                             # noqa
-    parser.add_argument("--boxsize", type=float, default=35000.,
-                        help="Box size (in appropriate units matching the particle positions).")                                 # noqa
     args = parser.parse_args()
 
-    print(f"{datetime.now()}: loading particle positions.", flush=True)
-    with File("/mnt/extraspace/rstiskalek/TNG50-1/output/dmpos_99_downsampled_4.hdf5", "r") as f:  # noqa
+    pospath = "/mnt/extraspace/rstiskalek/TNG50-1/output/dmpos_99_downsampled_4.hdf5"  # noqa
+    # pospath = "/mnt/extraspace/rstiskalek/TNG50-1/output/dm_pos_128.hdf5"
+    dumpfolder = "/mnt/extraspace/rstiskalek/TNG50-1/postprocessing/density_field"  # noqa
+    rate = 4
+    boxsize = 35000.
+    subbox_size = 2000.
+    mpart = 3.07367708626464e-05 * 1e10 * rate
+    ngrid = 128
+    MAS = "PCS"
+
+    comm = MPI.COMM_WORLD
+    rank, size = comm.Get_rank(), comm.Get_size()
+
+    if rank == 0:
+        print(f"{datetime.now()}: loading particle positions.", flush=True)
+    with File(pospath, 'r') as f:
         pos = f["pos"][:]
-    print(f"{datetime.now()}: done loading particle positions.", flush=True)
 
-    centers = load_centers(args)
+    comm.Barrier()
+    if rank == 0:
+        print(f"{datetime.now()}: all ranks loaded particle positions.",
+              flush=True)
 
-    # Create the output file.
-    fname_out = f"{basename(args.centers_file).split('.')[0]}.hdf5"
-    with File(fname_out, "w") as f:
-        f.attrs["subboxsize"] = args.subboxsize
-        f.attrs["boxsize"] = args.boxsize
-        f.close()
+    ids, centers = load_centers(args.centers_file, boxsize)
 
-    # Process the centers one by one.
-    for i, center in enumerate(centers):
-        print(f"{datetime.now()}: processing center {i+1}/{len(centers)}.")
+    # Split centers and ids into chunks for each rank.
+    chunk_size = len(centers) // size
+    extra_tasks = len(centers) % size
+    start_idx = rank * chunk_size + min(rank, extra_tasks)
+    end_idx = start_idx + chunk_size + (1 if rank < extra_tasks else 0)
 
-        subpos = tngsorted.find_boxed(pos, center, args.subboxsize,
-                                      args.boxsize)
+    centers = centers[start_idx:end_idx]
+    ids = ids[start_idx:end_idx]
 
-        print(f"{datetime.now()}: writing center {i+1}/{len(centers)}.")
-        with File(fname_out, "r+") as f:
-            grp = f.create_group(f"center_{i}")
-            grp.create_dataset("center", data=center)
-            grp.create_dataset("pos", data=subpos)
+    for i in range(len(centers)):
+        center = centers[i]
+        print(f"Rank {rank}, {datetime.now()}: processing center {i+1}/{len(centers)}.", flush=True)  # noqa
+        fname_out = join(dumpfolder, f"subhalo_{ids[i]}.npz")
 
-        print(f"{datetime.now()}: done writing center {i+1}/{len(centers)}.")
+        subpos = tngsorted.find_boxed(pos, center, subbox_size, boxsize)
+
+        field = tngsorted.positions_to_density_field(
+            ngrid, subpos, center, subbox_size, boxsize, mpart=mpart,
+            MAS=MAS, verbose=False)
+
+        numpy.savez(fname_out, field=field, center=center,
+                    subbox_size=subbox_size, ngrid=ngrid, MAS=MAS)
