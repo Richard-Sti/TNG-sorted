@@ -117,7 +117,7 @@ def positions_to_density_field(ngrid, pos, center, subbox_size, box_size,
     pos %= box_size
     pos -= box_size / 2 - subbox_size / 2
 
-    if not numpy.all(pos > 0) and numpy.all(pos < subbox_size):
+    if not numpy.all(pos >= 0) and numpy.all(pos <= subbox_size):
         raise ValueError("Particles are not within the sub-box.")
 
     field = numpy.zeros((ngrid, ngrid, ngrid), dtype=dtype)
