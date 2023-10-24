@@ -37,8 +37,12 @@ import illustris_python as il
 import numpy
 from tqdm import trange
 
+"""
+This probably doesn't work!
+"""
 
-def load_halo(hid, basepath):
+
+def load_halo(hid, basepath, snap, pkind):
     fields = ['Coordinates', 'Velocities', 'Potential', 'SubfindVelDisp']
     try:
         data = il.snapshot.loadHalo(basepath, 99, hid, 1, fields=fields)
