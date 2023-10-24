@@ -81,8 +81,9 @@ def find_boxed(pos, center, subbox_size, boxsize):
     return pos[indxs]
 
 
-def positions_to_density_field(ngrid, pos, center, subbox_size, MAS="PCS",
-                               mpart=1., dtype=numpy.float32):
+def positions_to_density_field(ngrid, pos, center, subbox_size, box_size,
+                               MAS="PCS", mpart=1., verbose=True,
+                               dtype=numpy.float32):
     """
     Convert a set of particle positions to a density field.
 
@@ -100,6 +101,8 @@ def positions_to_density_field(ngrid, pos, center, subbox_size, MAS="PCS",
         Mass assignment scheme.
     mpart : float, optional
         Mass of a single particle.
+    verbose : bool, optional
+        Verbosity flag.
     dtype : type, optional
         Data type to use for the output array.
 
@@ -107,16 +110,18 @@ def positions_to_density_field(ngrid, pos, center, subbox_size, MAS="PCS",
     -------
     field : 3-dimensional array of shape (ngrid, ngrid, ngrid)
     """
-    pos = pos - (center - subbox_size / 2)
-    pos = pos.astype(dtype)
+    pos, center = pos.astype(dtype), center.astype(dtype)
+
+    # Periodic wrapping
+    pos -= center - box_size / 2
+    pos %= box_size
+    pos -= box_size / 2 - subbox_size / 2
 
     if not numpy.all(pos > 0) and numpy.all(pos < subbox_size):
         raise ValueError("Particles are not within the sub-box.")
 
     field = numpy.zeros((ngrid, ngrid, ngrid), dtype=dtype)
-    MASL.MA(pos, field, subbox_size, MAS, verbose=False)
-
-    print(subbox_size / ngrid)
+    MASL.MA(pos, field, subbox_size, MAS, verbose=verbose)
 
     field *= mpart / (subbox_size / ngrid)**3
 
