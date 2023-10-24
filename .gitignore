@@ -8,5 +8,4 @@ python.sh
 scripts/test.ipynb
 scripts/*.txt
 scripts/*.hdf5
-scripts/*.py
 scripts/*.sh
