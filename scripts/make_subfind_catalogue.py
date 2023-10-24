@@ -84,7 +84,7 @@ if __name__ == "__main__":
                         help="Snapshot number.")
     args = parser.parse_args()
 
-    subfind_fields = ["SubhaloMass", "SubhaloCM", "SubhaloMassType"]
+    subfind_fields = ["SubhaloMass", "SubhaloPos", "SubhaloMassType"]
 
     data = load_subfind(args.basepath, args.snap, subfind_fields)
     data = append_neutral_hydrogen(data, args.basepath, args.snap)
