@@ -31,7 +31,7 @@ def load_centers(args):
     if not (numpy.all(centers > 0) and numpy.all(centers < args.boxsize)):
         raise ValueError("All centers must be within the box.")
 
-    return centers
+    return centers.reshape(-1, 3)
 
 
 if __name__ == "__main__":
